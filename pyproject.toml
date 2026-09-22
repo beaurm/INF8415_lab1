@@ -1,0 +1,10 @@
+[project]
+name = "inf8415-lab1"
+version = "0.1.0"
+description = "Add your description here"
+requires-python = ">=3.12"
+dependencies = [
+    "boto3>=1.43.100",
+    "fastapi>=0.141.1",
+    "uvicorn[standard]>=0.53.0",
+]
