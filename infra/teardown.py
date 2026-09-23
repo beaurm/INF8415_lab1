@@ -30,10 +30,10 @@ def terminate_instances(instance_ids):
     if not instance_ids:
         print("No instances found for this project.")
         return
-    print(f"Terminating {len(instance_ids)} instance(s): {instance_ids}")
+    print("Terminating", len(instance_ids), "instance(s)")
     ec2.terminate_instances(InstanceIds=instance_ids)
     ec2.get_waiter("instance_terminated").wait(InstanceIds=instance_ids)
-    print("All instances terminated.")
+    print("Instances terminated")
 
 
 def delete_security_group():
@@ -41,20 +41,20 @@ def delete_security_group():
         Filters=[{"Name": "group-name", "Values": [SECURITY_GROUP_NAME]}]
     )
     for sg in existing["SecurityGroups"]:
-        print(f"Deleting security group {sg['GroupId']} ({SECURITY_GROUP_NAME})...")
+        print("Deleting security group:", SECURITY_GROUP_NAME)
         ec2.delete_security_group(GroupId=sg["GroupId"])
 
 
 def delete_key_pair():
     existing = ec2.describe_key_pairs(Filters=[{"Name": "key-name", "Values": [KEY_NAME]}])
     if existing["KeyPairs"]:
-        print(f"Deleting key pair '{KEY_NAME}'...")
+        print("Deleting key pair:", KEY_NAME)
         ec2.delete_key_pair(KeyName=KEY_NAME)
 
     key_path = f"{KEY_NAME}.pem"
     if os.path.exists(key_path):
         os.remove(key_path)
-        print(f"Removed local {key_path}.")
+        print("Removed local key:", key_path)
 
 
 def main():

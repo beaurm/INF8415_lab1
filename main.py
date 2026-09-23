@@ -18,4 +18,10 @@ async def root():
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    # uvicorn.run(app, host="0.0.0.0", port=8000)
+    import hashlib
+    student_ids = sorted(["2278089", "2291231", "2251271", "2256783"])
+    joined = "-".join(student_ids)
+    seed = int(hashlib.sha256(joined.encode()).hexdigest(), 16) % 10000
+    print(seed)
+
