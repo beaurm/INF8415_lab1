@@ -5,6 +5,7 @@ import re
 import shutil
 import subprocess
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from urllib.error import URLError
 from urllib.request import urlopen
@@ -213,12 +214,15 @@ def main():
         print(f"Deploying to {len(instances)} running instances in {AWS_REGION}")
 
         failures = []
-        for instance in instances:
-            try:
-                deploy_instance(instance)
-            except Exception as error:
-                failures.append((instance["instance_id"], error))
-                print(f"[{instance['instance_id']}] FAILED: {error}")
+        with ThreadPoolExecutor(max_workers=len(instances)) as executor:
+            deployments = {executor.submit(deploy_instance, instance): instance for instance in instances}
+            for future in as_completed(deployments):
+                instance_id = deployments[future]["instance_id"]
+                try:
+                    future.result()
+                except Exception as error:
+                    failures.append((instance_id, error))
+                    print(f"[{instance_id}] FAILED: {error}")
 
         if failures:
             failed_ids = ", ".join(instance_id for instance_id, _ in failures)
