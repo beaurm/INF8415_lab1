@@ -9,8 +9,13 @@ SECURITY_GROUP_NAME = f"{PROJECT_TAG}-sg"
 APP_PORT = 8000
 AWS_REGION = "us-east-1"
 
-# AWS Academy Learner Lab provisions this instance profile for you automatically.
 INSTANCE_PROFILE_NAME = "LabInstanceProfile"
+LOADBALANCER = {
+    "name": "loadbalancer",
+    "instance_type": "t3.micro",
+    "count": 1,
+    "ami": "ami-0b2c9d1f3edcfd709", 
+}
 
 CLUSTER1 = {
     "name": "cluster1",
