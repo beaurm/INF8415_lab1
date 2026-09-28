@@ -13,6 +13,7 @@ from config import (
     CLUSTER2,
     INSTANCE_PROFILE_NAME,
     KEY_NAME,
+    LOADBALANCER,
     PROJECT_TAG,
     SECURITY_GROUP_NAME,
 )
@@ -191,7 +192,7 @@ def main():
         sg_id = ensure_security_group(vpc_id, created_resources)
 
         all_ids = []
-        for cluster in (CLUSTER1, CLUSTER2):
+        for cluster in (CLUSTER1, CLUSTER2, LOADBALANCER):
             all_ids += launch_cluster(cluster, sg_id, created_resources)
 
         print("Waiting for instances...")
