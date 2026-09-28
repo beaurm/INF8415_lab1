@@ -10,12 +10,15 @@ from fastapi.responses import Response
 import httpx
 import uvicorn
 
-from config import APP_PORT, AWS_REGION, CLUSTER1, CLUSTER2, PROJECT_TAG
+from config import APP_PORT, AWS_REGION, CLUSTER1, CLUSTER2, PROJECT_TAG, TEAM_SEED
 
 CLUSTERS = (CLUSTER1["name"], CLUSTER2["name"])
 ec2 = boto3.client("ec2", region_name=AWS_REGION)
 fastest = {}
 client = httpx.AsyncClient(timeout=1.0)
+
+
+FAILOVER_THRESHOLD_MS = 50 + (TEAM_SEED % 200)
 
 
 def get_project_instances():
@@ -47,11 +50,23 @@ async def refresh_targets():
     results = await asyncio.gather(*(get_health(instance) for instance in instances),
                                    return_exceptions=True)
     healthy = [result for result in results if isinstance(result, tuple)]
-    fastest.clear()
+
     for cluster in CLUSTERS:
         candidates = [result for result in healthy if result[0] == cluster]
-        if candidates:
-            fastest[cluster] = min(candidates, key=lambda result: result[3])
+        if not candidates:
+            fastest.pop(cluster, None)
+            continue
+
+        current = fastest.get(cluster)
+
+        if current is not None:
+            still_healthy = [c for c in candidates if c[1] == current[1]]
+            if still_healthy and (still_healthy[0][3] * 1000) <= FAILOVER_THRESHOLD_MS:
+                fastest[cluster] = still_healthy[0]
+                continue
+
+        # Sinon, on bascule vers l'instance la plus rapide disponible.
+        fastest[cluster] = min(candidates, key=lambda result: result[3])
 
 
 async def monitor():
@@ -96,4 +111,5 @@ async def cluster2():
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+
+    uvicorn.run(app, host="0.0.0.0", port=8080)
