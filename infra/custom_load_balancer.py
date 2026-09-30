@@ -15,7 +15,7 @@ from config import APP_PORT, AWS_REGION, CLUSTER1, CLUSTER2, PROJECT_TAG, TEAM_S
 CLUSTERS = (CLUSTER1["name"], CLUSTER2["name"])
 ec2 = boto3.client("ec2", region_name=AWS_REGION)
 fastest = {}
-client = httpx.AsyncClient(timeout=1.0)
+client = httpx.AsyncClient(timeout=5.0)
 
 
 FAILOVER_THRESHOLD_MS = 50 + (TEAM_SEED % 200)
@@ -32,8 +32,8 @@ def get_project_instances():
             for instance in reservation["Instances"]:
                 tags = {tag["Key"]: tag["Value"] for tag in instance.get("Tags", [])}
                 cluster = tags.get("Cluster")
-                if cluster in CLUSTERS and instance.get("PublicIpAddress"):
-                    instances.append((cluster, instance["InstanceId"], instance["PublicIpAddress"]))
+                if cluster in CLUSTERS and instance.get("PrivateIpAddress"):
+                    instances.append((cluster, instance["InstanceId"], instance["PrivateIpAddress"]))
     return instances
 
 
@@ -111,5 +111,4 @@ async def cluster2():
 
 
 if __name__ == "__main__":
-
     uvicorn.run(app, host="0.0.0.0", port=8080)

@@ -80,7 +80,7 @@ def get_project_instances():
                 tags = {tag["Key"]: tag["Value"] for tag in instance.get("Tags", [])}
                 cluster = tags.get("Cluster")
                 if cluster not in EXPECTED_COUNTS:
-                    raise RuntimeError(f"Unexpected cluster tag on {instance['InstanceId']}: {cluster}")
+                    continue
                 instances.append(
                     {
                         "instance_id": instance["InstanceId"],
@@ -316,26 +316,7 @@ def restrict_instance_port(security_group_ids, alb_security_group_id):
                 ],
             )
 
-        for permission in group["IpPermissions"]:
-            if (
-                permission.get("IpProtocol") != "tcp"
-                or permission.get("FromPort") != APP_PORT
-                or permission.get("ToPort") != APP_PORT
-            ):
-                continue
-            for address in permission.get("IpRanges", []):
-                if address.get("CidrIp") in ("0.0.0.0/0",):
-                    ec2.revoke_security_group_ingress(
-                        GroupId=group_id,
-                        IpPermissions=[
-                            {
-                                "IpProtocol": "tcp",
-                                "FromPort": APP_PORT,
-                                "ToPort": APP_PORT,
-                                "IpRanges": [{"CidrIp": address["CidrIp"]}],
-                            }
-                        ],
-                    )
+
 
 
 def register_cluster_targets(instances, target_group_arns):

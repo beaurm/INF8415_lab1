@@ -121,7 +121,7 @@ def ssh_command(instance, script):
             "-o",
             "BatchMode=yes",
             "-o",
-            "StrictHostKeyChecking=accept-new",
+            "StrictHostKeyChecking=no",
             "-o",
             "ConnectTimeout=10",
             f"ec2-user@{instance['public_ip']}",
@@ -156,7 +156,7 @@ python3.12 -m venv {REMOTE_DIR}/.venv
             "-o",
             "BatchMode=yes",
             "-o",
-            "StrictHostKeyChecking=accept-new",
+            "StrictHostKeyChecking=no",
             "-o",
             "ConnectTimeout=10",
             str(APP_PATH),
@@ -220,7 +220,7 @@ python3.12 -m venv {REMOTE_DIR}/.venv
                 "-o",
                 "BatchMode=yes",
                 "-o",
-                "StrictHostKeyChecking=accept-new",
+                "StrictHostKeyChecking=no",
                 "-o",
                 "ConnectTimeout=10",
                 str(src_path),
@@ -294,7 +294,7 @@ def main():
 
         failures = []
 
-        # Deploy main.py on the 9 application instances (in parallel)
+        # Deploy main.py on the 8 application instances (in parallel)
         with ThreadPoolExecutor(max_workers=len(app_instances)) as executor:
             deployments = {executor.submit(deploy_instance, instance): instance for instance in app_instances}
             for future in as_completed(deployments):

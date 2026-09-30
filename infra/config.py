@@ -1,6 +1,6 @@
 """Shared config for the boto3 provisioning scripts."""
 
-TEAM_SEED = 296  # sha256("2251271-2256783-2278089-2291231") % 10000, per Section 6.4
+TEAM_SEED = 296
 PROJECT_TAG = f"assignment1-team-{TEAM_SEED}"
 
 KEY_NAME = f"{PROJECT_TAG}-key"
@@ -10,23 +10,24 @@ APP_PORT = 8000
 AWS_REGION = "us-east-1"
 
 INSTANCE_PROFILE_NAME = "LabInstanceProfile"
-LOADBALANCER = {
-    "name": "loadbalancer",
-    "instance_type": "t3.micro",
-    "count": 1,
-    "ami": "ami-0b2c9d1f3edcfd709", 
-}
 
 CLUSTER1 = {
     "name": "cluster1",
     "instance_type": "t3.micro",
-    "count": 5,
-    "ami": "ami-0b2c9d1f3edcfd709",  # al2023-ami-2023.12.20260918.0-kernel-6.1-x86_64 
+    "count": 4,
+    "ami": "ami-0b2c9d1f3edcfd709",
 }
 
 CLUSTER2 = {
     "name": "cluster2",
-    "instance_type": "m7g.large",
+    "instance_type": "t3.medium",
     "count": 4,
-    "ami": "ami-007d8fad70c3dae04",  # al2023-ami-2023.12.20260918.0-kernel-6.1-arm64
+    "ami": "ami-0b2c9d1f3edcfd709",
+}
+
+LOADBALANCER = {
+    "name": "loadbalancer",
+    "instance_type": "t3.micro",
+    "count": 1,
+    "ami": "ami-0b2c9d1f3edcfd709",
 }
