@@ -63,8 +63,7 @@ async def benchmark_endpoint(base_url, path, label):
             "latencies": latencies, "instance_counts": instance_counts}
 
 
-async def main():
-    base_url = sys.argv[1] if len(sys.argv) > 1 else input("ALB DNS (http://...): ").strip()
+async def benchmark_clusters(base_url):
     if not base_url.startswith("http"):
         base_url = "http://" + base_url
 
@@ -81,4 +80,5 @@ async def main():
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    url = sys.argv[1] if len(sys.argv) > 1 else input("ALB DNS (http://...): ").strip()
+    asyncio.run(benchmark_clusters(url))

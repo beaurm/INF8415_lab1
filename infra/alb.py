@@ -374,7 +374,7 @@ def verify_routing(dns_name, instances):
         print(f"Verified /{cluster} -> {payload['instance_id']} (seed {seed_header})")
 
 
-def main():
+def setup_alb():
     try:
         vpc_id = get_default_vpc()
         instances, instance_security_group_ids = get_project_instances()
@@ -399,6 +399,7 @@ def main():
         verify_routing(dns_name, instances)
         print("ALB DNS:", dns_name)
         print("ALB setup completed successfully.")
+        return dns_name
     except (BotoCoreError, ClientError, URLError) as error:
         raise SystemExit(f"ALB setup failed: {error}. Existing AWS resources may need cleanup or a rerun.") from error
     except RuntimeError as error:
@@ -406,4 +407,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    setup_alb()

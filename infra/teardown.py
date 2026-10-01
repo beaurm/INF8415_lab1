@@ -127,7 +127,7 @@ def delete_key_pair():
         print("Removed local key:", key_path)
 
 
-def main():
+def teardown_all():
     delete_load_balancer_resources()
     terminate_instances(find_project_instance_ids())
     remove_alb_security_group_references()
@@ -136,4 +136,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    teardown_all()

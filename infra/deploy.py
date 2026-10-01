@@ -282,7 +282,7 @@ def verify_instance(instance):
     raise RuntimeError(f"Health check failed for {instance_id} at {url}: {last_error}")
 
 
-def main():
+def deploy_apps():
     try:
         validate_local_prerequisites()
         instances = get_project_instances()
@@ -322,6 +322,7 @@ def main():
             lb_ip = lb_instances[0]["public_ip"]
             print(f"Load Balancer public IP: {lb_ip}")
             print(f"Test with: curl http://{lb_ip}:{APP_PORT}/cluster1")
+            return lb_ip
     except (BotoCoreError, ClientError) as error:
         raise SystemExit(f"AWS discovery failed: {error}") from error
     except RuntimeError as error:
@@ -329,4 +330,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    deploy_apps()

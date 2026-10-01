@@ -178,7 +178,7 @@ def cleanup_created_resources(created_resources):
                 print("Rollback could not remove local key:", error)
 
 
-def main():
+def provision_instances():
     created_resources = {
         "instance_ids": [],
         "security_group_id": None,
@@ -221,4 +221,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    provision_instances()
