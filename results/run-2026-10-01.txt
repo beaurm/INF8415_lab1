@@ -1,0 +1,103 @@
+Creating key pair: assignment1-team-296-key
+Saved private key: assignment1-team-296-key.pem
+Creating security group: assignment1-team-296-sg
+Launching 4 t3.micro instance(s) for cluster1
+Launching 4 t3.medium instance(s) for cluster2
+Launching 1 t3.micro instance(s) for loadbalancer
+Waiting for instances...
+i-0b095777ca2f420ec loadbalancer t3.micro 54.82.43.78
+i-0eb40b177b4d91d2e cluster2 t3.medium 52.90.102.249
+i-06ff0ac85789f25b6 cluster2 t3.medium 54.242.206.153
+i-01ceb3b79b3664cae cluster2 t3.medium 54.211.81.186
+i-0de3d64b5e44242fc cluster2 t3.medium 54.237.204.217
+i-03135c68f6a190a3b cluster1 t3.micro 98.93.43.198
+i-0d710ccd9b61815d7 cluster1 t3.micro 13.220.58.167
+i-0a7c6b5ca8b8cfaae cluster1 t3.micro 98.90.195.37
+i-0ad68b874ee12913a cluster1 t3.micro 98.81.196.11
+Waiting for instance status checks (SSH readiness)...
+Deploying to 9 running instances in us-east-1
+[i-03135c68f6a190a3b] Preparing cluster1[i-0a7c6b5ca8b8cfaae] Preparing cluster1
+
+[i-0ad68b874ee12913a] Preparing cluster1[i-0d710ccd9b61815d7] Preparing cluster1
+
+[i-01ceb3b79b3664cae] Preparing cluster2[i-06ff0ac85789f25b6] Preparing cluster2
+[i-0de3d64b5e44242fc] Preparing cluster2[i-0eb40b177b4d91d2e] Preparing cluster2
+
+
+[i-01ceb3b79b3664cae] Deployment and health check passed[i-0eb40b177b4d91d2e] Deployment and health check passed
+
+[i-0d710ccd9b61815d7] Deployment and health check passed
+[i-0ad68b874ee12913a] Deployment and health check passed[i-0a7c6b5ca8b8cfaae] Deployment and health check passed
+
+[i-06ff0ac85789f25b6] Deployment and health check passed[i-03135c68f6a190a3b] Deployment and health check passed
+
+[i-0de3d64b5e44242fc] Deployment and health check passed
+[i-0b095777ca2f420ec] Preparing Load Balancer
+[i-0b095777ca2f420ec] Load Balancer deployed on port 8000
+Deployment completed successfully on all instances.
+Load Balancer public IP: 54.82.43.78
+Test with: curl http://54.82.43.78:8000/cluster1
+Created ALB security group: sg-04c5d78a456205629
+Created target group a1-296-cluster1: arn:aws:elasticloadbalancing:us-east-1:112892407562:targetgroup/a1-296-cluster1/0d208b081b40221e
+Created target group a1-296-cluster2: arn:aws:elasticloadbalancing:us-east-1:112892407562:targetgroup/a1-296-cluster2/682656c8a27dce2a
+Created ALB: arn:aws:elasticloadbalancing:us-east-1:112892407562:loadbalancer/app/assignment1-team-296-alb/db0be654b72164ec
+cluster1: 0/4 healthy
+cluster2: 0/4 healthy
+cluster1: 0/4 healthy
+cluster2: 0/4 healthy
+cluster1: 4/4 healthy
+cluster2: 4/4 healthy
+Verified /cluster1 -> i-0a7c6b5ca8b8cfaae (seed 296)
+Verified /cluster2 -> i-06ff0ac85789f25b6 (seed 296)
+ALB DNS: assignment1-team-296-alb-2007985579.us-east-1.elb.amazonaws.com
+ALB setup completed successfully.
+
+Benchmark: AWS ALB
+
+=== Benchmarking cluster1 (small) (http://assignment1-team-296-alb-2007985579.us-east-1.elb.amazonaws.com/cluster1) ===
+Total wall time:       0.80 s
+Successful requests:   1000/1000
+Avg latency:           564.83 ms
+Median latency:        594.92 ms
+Min / Max latency:     275.64 / 767.58 ms
+Requests per instance: {'i-03135c68f6a190a3b': 250, 'i-0d710ccd9b61815d7': 250, 'i-0a7c6b5ca8b8cfaae': 250, 'i-0ad68b874ee12913a': 250}
+Team seed seen:        {296}
+
+=== Benchmarking cluster2 (large) (http://assignment1-team-296-alb-2007985579.us-east-1.elb.amazonaws.com/cluster2) ===
+Total wall time:       0.59 s
+Successful requests:   1000/1000
+Avg latency:           273.27 ms
+Median latency:        263.28 ms
+Min / Max latency:     102.15 / 532.56 ms
+Requests per instance: {'i-0de3d64b5e44242fc': 250, 'i-06ff0ac85789f25b6': 249, 'i-0eb40b177b4d91d2e': 250, 'i-01ceb3b79b3664cae': 251}
+Team seed seen:        {296}
+
+=== Summary ===
+Cluster1: 0.80s total, 1000/1000 OK, avg 564.83 ms
+Cluster2: 0.59s total, 1000/1000 OK, avg 273.27 ms
+
+Benchmark: custom load balancer
+
+=== Benchmarking cluster1 (small) (http://54.82.43.78:8000/cluster1) ===
+Total wall time:       3.79 s
+Successful requests:   1000/1000
+Avg latency:           2027.69 ms
+Median latency:        2020.03 ms
+Min / Max latency:     303.61 / 3768.11 ms
+Requests per instance: {'i-03135c68f6a190a3b': 964, 'i-0d710ccd9b61815d7': 36}
+Team seed seen:        {296}
+
+=== Benchmarking cluster2 (large) (http://54.82.43.78:8000/cluster2) ===
+Total wall time:       3.62 s
+Successful requests:   1000/1000
+Avg latency:           1946.67 ms
+Median latency:        1962.44 ms
+Min / Max latency:     159.37 / 3590.21 ms
+Requests per instance: {'i-06ff0ac85789f25b6': 962, 'i-0eb40b177b4d91d2e': 38}
+Team seed seen:        {296}
+
+=== Summary ===
+Cluster1: 3.79s total, 1000/1000 OK, avg 2027.69 ms
+Cluster2: 3.62s total, 1000/1000 OK, avg 1946.67 ms
+
+[exited with code 0]
