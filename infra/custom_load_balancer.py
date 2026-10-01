@@ -90,11 +90,20 @@ async def lifespan(app):
 app = FastAPI(lifespan=lifespan)
 
 
-async def forward_request(cluster):
+async def send_to_fastest(cluster):
     if cluster not in fastest:
         raise HTTPException(status_code=503, detail="No healthy instances")
     _, _, ip, _ = fastest[cluster]
-    response = await client.get(f"http://{ip}:{APP_PORT}/{cluster}")
+    return await client.get(f"http://{ip}:{APP_PORT}/{cluster}")
+
+
+async def forward_request(cluster):
+    try:
+        response = await send_to_fastest(cluster)
+    except httpx.HTTPError:
+        # The instance died since the last check: check again now and retry once.
+        await refresh_targets()
+        response = await send_to_fastest(cluster)
     return Response(content=response.content, status_code=response.status_code,
                     headers={"content-type": response.headers["content-type"],
                              "x-team-seed": response.headers["x-team-seed"]})
