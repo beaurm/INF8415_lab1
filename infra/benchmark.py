@@ -1,83 +1,62 @@
-"""Benchmark: send 1000 concurrent requests to /cluster1 and /cluster2."""
+"""Benchmark: send 1000 concurrent requests to each cluster, through the ALB and the custom LB.
+
+Every request is appended as one row to results/requests.csv; analysis is done separately from that file.
+"""
 
 import asyncio
-import statistics
+import csv
 import sys
 import time
-from urllib.parse import urljoin
+from pathlib import Path
 
 import aiohttp
 
 NUM_REQUESTS = 1000
+CSV_PATH = Path(__file__).resolve().parents[1] / "results" / "requests.csv"
+FIELDS = ["run_id", "timestamp", "load_balancer", "cluster", "request_id",
+          "backend_instance", "status_code", "latency_ms", "team_seed", "error"]
+
 
 async def single_request(session, url, request_id):
+    row = {"request_id": request_id, "timestamp": time.time()}
     start = time.perf_counter()
     try:
         async with session.get(url, timeout=aiohttp.ClientTimeout(total=30)) as resp:
             body = await resp.json()
-            latency = time.perf_counter() - start
-            return {
-                "id": request_id,
-                "status": resp.status,
-                "latency": latency,
-                "instance_id": body.get("instance_id"),
-                "cluster": body.get("cluster"),
-                "team_seed": body.get("team_seed"),
-                "seed_header": resp.headers.get("X-Team-Seed"),
-            }
-    except Exception as exc:
-        return {"id": request_id, "error": str(exc), "latency": time.perf_counter() - start}
+            row.update(status_code=resp.status, backend_instance=body.get("instance_id"),
+                       team_seed=resp.headers.get("X-Team-Seed"))
+    except Exception as error:
+        row["error"] = str(error)
+    row["latency_ms"] = (time.perf_counter() - start) * 1000
+    return row
 
 
-async def benchmark_endpoint(base_url, path, label):
-    url = urljoin(base_url, path)
-    print(f"\n=== Benchmarking {label} ({url}) ===")
-
+async def benchmark_cluster(base_url, cluster):
     async with aiohttp.ClientSession() as session:
-        start = time.perf_counter()
-        tasks = [single_request(session, url, i) for i in range(NUM_REQUESTS)]
-        results = await asyncio.gather(*tasks)
-        total = time.perf_counter() - start
-
-    errors = [r for r in results if "error" in r]
-    ok = [r for r in results if "error" not in r]
-    latencies = [r["latency"] for r in ok]
-
-    instance_counts = {}
-    for r in ok:
-        instance_counts[r["instance_id"]] = instance_counts.get(r["instance_id"], 0) + 1
-
-    print(f"Total wall time:       {total:.2f} s")
-    if latencies:
-        print(f"Successful requests:   {len(ok)}/{NUM_REQUESTS}")
-        print(f"Avg latency:           {statistics.mean(latencies)*1000:.2f} ms")
-        print(f"Median latency:        {statistics.median(latencies)*1000:.2f} ms")
-        print(f"Min / Max latency:     {min(latencies)*1000:.2f} / {max(latencies)*1000:.2f} ms")
-    if errors:
-        print(f"Errors:                {len(errors)}")
-    print(f"Requests per instance: {instance_counts}")
-    print(f"Team seed seen:        {set(r.get('team_seed') for r in ok)}")
-
-    return {"label": label, "total": total, "ok": len(ok), "errors": len(errors),
-            "latencies": latencies, "instance_counts": instance_counts}
+        tasks = [single_request(session, f"http://{base_url}/{cluster}", i) for i in range(NUM_REQUESTS)]
+        return await asyncio.gather(*tasks)
 
 
-async def benchmark_clusters(base_url):
-    if not base_url.startswith("http"):
-        base_url = "http://" + base_url
+def benchmark_all(alb_url, custom_lb_url, runs=1):
+    new_file = not CSV_PATH.exists()
+    CSV_PATH.parent.mkdir(exist_ok=True)
+    with CSV_PATH.open("a", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=FIELDS)
+        if new_file:
+            writer.writeheader()
 
-    r1 = await benchmark_endpoint(base_url, "/cluster1", "cluster1 (small)")
-    r2 = await benchmark_endpoint(base_url, "/cluster2", "cluster2 (large)")
+        for _ in range(runs):
+            run_id = time.strftime("%Y%m%d-%H%M%S")
+            for load_balancer, base_url in (("alb", alb_url), ("custom", custom_lb_url)):
+                for cluster in ("cluster1", "cluster2"):
+                    rows = asyncio.run(benchmark_cluster(base_url, cluster))
+                    for row in rows:
+                        row.update(run_id=run_id, load_balancer=load_balancer, cluster=cluster)
+                    writer.writerows(rows)
 
-    print("\n=== Summary ===")
-    if r1['latencies']:
-        print(f"Cluster1: {r1['total']:.2f}s total, {r1['ok']}/{NUM_REQUESTS} OK, "
-              f"avg {statistics.mean(r1['latencies'])*1000:.2f} ms")
-    if r2['latencies']:
-        print(f"Cluster2: {r2['total']:.2f}s total, {r2['ok']}/{NUM_REQUESTS} OK, "
-              f"avg {statistics.mean(r2['latencies'])*1000:.2f} ms")
+    print(f"Saved {runs} run(s) to {CSV_PATH}")
 
 
 if __name__ == "__main__":
-    url = sys.argv[1] if len(sys.argv) > 1 else input("ALB DNS (http://...): ").strip()
-    asyncio.run(benchmark_clusters(url))
+    # Usage: benchmark.py <alb-dns> <custom-lb-ip:port> [runs]
+    benchmark_all(sys.argv[1], sys.argv[2], int(sys.argv[3]) if len(sys.argv) > 3 else 1)

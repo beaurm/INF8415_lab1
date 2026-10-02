@@ -14,11 +14,15 @@ elbv2 = boto3.client("elbv2", region_name=AWS_REGION)
 def delete_alb():
     for alb in elbv2.describe_load_balancers()["LoadBalancers"]:
         if alb["LoadBalancerName"] == ALB_NAME:
+            # Delete the listener (and its rules) explicitly: AWS can still see it attached
+            # to the target groups for a while after the ALB itself is deleted.
+            for listener in elbv2.describe_listeners(LoadBalancerArn=alb["LoadBalancerArn"])["Listeners"]:
+                elbv2.delete_listener(ListenerArn=listener["ListenerArn"])
             print("Deleting ALB:", ALB_NAME)
             elbv2.delete_load_balancer(LoadBalancerArn=alb["LoadBalancerArn"])
             elbv2.get_waiter("load_balancers_deleted").wait(LoadBalancerArns=[alb["LoadBalancerArn"]])
 
-    # Target groups can only be deleted once the ALB using them is gone.
+    # Target groups can only be deleted once no listener uses them.
     for group in elbv2.describe_target_groups()["TargetGroups"]:
         if group["TargetGroupName"] in TARGET_GROUP_NAMES.values():
             print("Deleting target group:", group["TargetGroupName"])

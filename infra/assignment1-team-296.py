@@ -1,9 +1,7 @@
 """Run the whole lab end-to-end: provision, deploy, ALB, then benchmark both load balancers."""
 
-import asyncio
-
 from alb import setup_alb
-from benchmark import benchmark_clusters
+from benchmark import benchmark_all
 from config import APP_PORT
 from deploy import deploy_apps, ec2, get_project_instances
 from provision import provision_instances
@@ -22,8 +20,4 @@ if __name__ == "__main__":
     lb_ip = deploy_apps()
     alb_dns = setup_alb()
 
-    print("\nBenchmark: AWS ALB")
-    asyncio.run(benchmark_clusters(alb_dns))
-
-    print("\nBenchmark: custom load balancer")
-    asyncio.run(benchmark_clusters(f"{lb_ip}:{APP_PORT}"))
+    benchmark_all(alb_dns, f"{lb_ip}:{APP_PORT}")
