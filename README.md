@@ -1,170 +1,164 @@
 # INF8415 Lab 1
 
-This guide covers the workflow currently implemented in this repository:
-provision EC2 instances, deploy FastAPI to them, create the ALB, test the
-routes, and tear everything down at the end of the session.
+Load Balancer from Scratch. This repository provisions two EC2 clusters,
+deploys a FastAPI app on every instance, puts an AWS Application Load Balancer (ALB) and our own custom load balancer in front of them, benchmarks both, and saves the CloudWatch graphs. Everything can be run with a single command.
 
-> **Project status:** EC2 provisioning, FastAPI deployment, and the ALB are
-> available in the scripts below. The benchmark and custom load balancer have
-> not been implemented yet. There is not yet a single command that completes
-> the entire lab.
+## Configuration
 
-## 1. Prerequisites
+All settings live in `infra/config.py`.
 
-- An active AWS Academy Learner Lab session in `us-east-1`.
-- Git Bash opened at the repository root (not the AWS browser terminal).
-- Python 3.12 or newer.
-- `uv` installed at `$HOME/.local/bin/uv.exe`.
-- Git for Windows with `ssh`, `scp`, and `cygpath` available.
-- Sufficient AWS budget: EC2, public IPv4 addresses, and the ALB may incur charges.
+| Setting | Value |
+|---|---|
+| Region | `us-east-1` |
+| Cluster 1 (`/cluster1`) | 4 × `t3.micro` |
+| Cluster 2 (`/cluster2`) | 4 × `m7g.large` |
+| Custom load balancer | 1 × `t3.micro`, port `8000` |
+| Team seed | `296` |
+| Custom LB failover threshold | 50 + (296 mod 200) = `146 ms` |
 
-Set the path to `uv` and check it:
+The seed was computed with `uv run python infra/compute_seed.py`.
 
-```bash
-UV="$HOME/.local/bin/uv.exe"
-"$UV" --version
-```
+Cluster 1 has 4 instances instead of the 5 in the assignment: the Learner Lab
+allows 9 running instances, and the custom load balancer uses one of them.
 
-If a version is printed, sync the project environment from `pyproject.toml` and
-`uv.lock`:
+## Repository layout
 
-```bash
-"$UV" sync
-```
+| File | Role |
+|---|---|
+| `main.py` | FastAPI app deployed on every instance (`/cluster1`, `/cluster2`, `/health`) |
+| `infra/assignment1-team-296.py` | Runs the whole lab end-to-end |
+| `infra/provision.py` | Creates the key pair, security group and EC2 instances |
+| `infra/deploy.py` | Installs the FastAPI app on the clusters and the custom LB on its instance |
+| `infra/alb.py` | Creates the ALB, the two target groups and the path routing rules |
+| `infra/custom_load_balancer.py` | Our load balancer (active probing, deployed by `deploy.py`) |
+| `infra/benchmark.py` | Sends 1000 concurrent requests to each cluster |
+| `infra/cloudwatch_graphs.py` | Saves the ALB CloudWatch graphs as PNGs in `cloudwatch/` |
+| `infra/teardown.py` | Deletes every AWS resource the project created |
+| `infra/compute_seed.py` | Computes the team seed from our student IDs |
+| `results/` | Saved outputs of past runs |
 
-Expected result: the `.venv` environment exists and the project dependencies
-are installed. The project is configured for region `us-east-1`, with 5
-`t3.micro` instances and 4 `m7g.large` instances, and team seed `296`.
+## 1. Setup
 
-## 2. Local AWS credentials
-
-The boto3 scripts run on your computer. They do not automatically receive the
-credentials from the AWS browser terminal.
-
-1. Start the Learner Lab.
-2. Open **AWS Details -> AWS CLI** and copy the complete block beginning with
-   `[default]`.
-3. Open the local credentials file, outside this repository:
+Requires Python 3.12+ and [`uv`](https://docs.astral.sh/uv/). From the
+repository root, install the dependencies:
 
 ```bash
-mkdir -p "$HOME/.aws"
-notepad.exe "$(cygpath -w "$HOME/.aws/credentials")"
+uv sync
 ```
 
-Paste the full block and save it. It contains temporary keys and a session
-token. Never put these values in the repository or share them. They expire
-after a few hours; replace them from AWS Details when they expire.
+Copy the Learner Lab credentials (**AWS Details -> AWS CLI**) into
+`~/.aws/credentials`. They expire at the end of each lab session.
 
-Check that boto3 can reach AWS:
+## 2. Run everything (single command)
 
 ```bash
-"$UV" run python -c "import boto3; boto3.client('sts', region_name='us-east-1').get_caller_identity(); print('AWS credentials: OK')"
+mkdir -p results
+uv run python -u infra/assignment1-team-296.py 2>&1 | tee "results/run-$(date +%F-%H%M).txt"
 ```
 
-Expected result: `AWS credentials: OK`. If credentials fail, do not run the
-AWS scripts.
+This runs, in order:
 
-## 3. Provision EC2 instances
+1. **Provision** the 9 instances, the key pair and the security group.
+2. **Wait** until the instances pass their AWS status checks (SSH is ready).
+3. **Deploy** the FastAPI app on the 8 cluster instances and the custom load
+   balancer on its own instance.
+4. **Create the ALB**, wait until all targets are healthy and check both routes.
+5. **Benchmark** both clusters through the ALB, then through the custom LB.
 
-This step creates the instances, SSH key pair, and security group. After a
-teardown, it creates **new** instances and a new key.
+A full run takes about 10 minutes. `tee` shows the output and also saves it in
+`results/`. The infrastructure is **left running** at the end (it is needed for
+the live demo); see step 5 to delete it.
 
-```bash
-"$UV" run python infra/provision.py
-```
-
-Expected result: the instances reach `running`, then the script prints their
-IDs, clusters, instance types, and public IP addresses. There should be 5 lines
-for `cluster1 t3.micro` and 4 for `cluster2 m7g.large`. The file
-`assignment1-team-296-key.pem` is created at the repository root; keep it private.
-
-For each cluster, the script reuses project instances already in `pending` or
-`running` state. It does not restart stopped instances. Do not rerun this script
-unless you intend to create AWS resources.
-
-## 4. Deploy FastAPI to all nine instances
-
-Make sure all nine EC2 instances are `running`, the Learner Lab and credentials
-are still valid, and `ssh`, `scp`, and the `.pem` file are available.
-
-```bash
-"$UV" run python infra/deploy.py
-```
-
-The script discovers instances by tags, installs Python 3.12 and FastAPI,
-creates a virtual environment on every EC2 instance, copies `main.py`, configures
-and enables the `systemd` service, then checks the cluster route. It prints
-`Deployment completed successfully on all instances.` only if all nine checks pass.
-
-Each checked response must contain the correct EC2 instance ID, cluster, and
-`team_seed: 296`; the `X-Team-Seed` response header must also be `296`.
-
-## 5. Create and verify the ALB
-
-This step creates a public ALB, a dedicated security group, two target groups,
-an HTTP listener, and routing rules. It waits for all nine instances to become
-healthy. It also restricts EC2 port `8000` to traffic from the ALB security group.
-
-```bash
-"$UV" run python infra/alb.py
-```
-
-Expected output:
+At the end of the deploy and ALB steps, the script prints the two addresses to
+test with:
 
 ```text
-cluster1: 5/5 healthy
-cluster2: 4/4 healthy
-Verified /cluster1 -> ... (seed 296)
-Verified /cluster2 -> ... (seed 296)
-ALB DNS: <public-ALB-name>
-ALB setup completed successfully.
+Load Balancer public IP: <custom-lb-ip>
+ALB DNS: <alb-dns-name>
 ```
 
-Copy the name printed after `ALB DNS:` and test each route in Git Bash:
+## 3. Run the steps one by one (optional)
+
+Each script can also be run on its own:
 
 ```bash
-ALB_DNS="<public-ALB-name>"
-curl -i "http://${ALB_DNS}/cluster1"
+uv run python infra/provision.py
+uv run python infra/deploy.py      # wait 2-3 min after provisioning, until SSH is ready
+uv run python infra/alb.py
+uv run python infra/benchmark.py <alb-dns-name>
+uv run python infra/benchmark.py <custom-lb-ip>:8000
 ```
 
-Expected: status `200`, header `296`, and JSON containing `cluster: cluster1`
-and `team_seed: 296`. Repeat for the other cluster:
+- `provision.py` reuses project instances that are already `pending` or
+  `running`; it does not restart stopped ones. It saves the SSH key as
+  `assignment1-team-296-key.pem` at the repository root; keep it private.
+- `deploy.py` prints `Deployment completed successfully on all instances.` only
+  if every instance returns the right instance ID, cluster and seed (`team_seed`
+  in the JSON body and `X-Team-Seed` header).
+- `alb.py` can be rerun safely: it reuses resources that already exist.
+
+## 4. Test the load balancers
+
+Each response contains the instance ID, the cluster and `team_seed: 296`, plus
+an `X-Team-Seed: 296` header.
 
 ```bash
-curl -i "http://${ALB_DNS}/cluster2"
+curl -i "http://<alb-dns-name>/cluster1"
+curl -i "http://<custom-lb-ip>:8000/cluster2"
 ```
 
-This response should contain `cluster: cluster2`. The ALB forwards each request
-to an instance in the matching target group, so the instance ID may vary between
-requests.
+The ALB spreads requests across the instances of the target group (round-robin),
+so the instance ID changes between requests. The custom LB sends requests to the
+fastest healthy instance of the cluster, so the instance ID stays the same until
+it fails over.
 
-If ALB setup fails after creating resources, some resources may remain in AWS
-and continue to incur charges. The script can be rerun; otherwise, use the
-teardown below.
+### Custom load balancer behavior
 
-## 6. End the session and delete resources
+Every 3 seconds, the custom LB lists the running instances of each cluster and
+measures their `/health` response time. It keeps routing to the current instance
+while it responds within 146 ms; otherwise it switches to the fastest healthy
+instance. If a request fails because the instance went down between two checks,
+it re-checks the instances immediately and retries the request once on another
+instance.
 
-Teardown is **destructive**. It deletes the ALB, listener, target groups, all
-nine project EC2 instances, security groups, and AWS key pair; it also deletes
-the local `.pem` file. Run it only if you intend to destroy the cluster:
+### Chaos check (demo)
+
+Keep a request loop running against each cluster, then stop or terminate one
+instance per cluster from the EC2 console:
 
 ```bash
-"$UV" run python infra/teardown.py
+while true; do curl -s "http://<custom-lb-ip>:8000/cluster1"; echo; sleep 0.5; done
 ```
 
-Expected result: deletion messages, `Instances terminated`, and removal of the
-local key. Check AWS to confirm that the project instances, ALB, and target
-groups are gone. Your local source code is not deleted. To use AWS again later,
-repeat steps 2 through 5; provisioning will create new instances and a new key.
+The loop should keep returning responses from the remaining instances.
+
+### CloudWatch graphs
+
+While the ALB still exists, save the graphs of the last 30 minutes (healthy
+targets and requests per target, for each target group):
+
+```bash
+uv run python infra/cloudwatch_graphs.py
+```
+
+The PNGs are written to `cloudwatch/` and **overwrite** the previous ones; copy
+them elsewhere first if you want to keep them.
+
+## 5. Delete everything
+
+Teardown is **destructive**: it deletes the ALB, listener, target groups, all
+project EC2 instances, both security groups and the AWS key pair, and removes the
+local `.pem` file. Your source code is not affected.
+
+```bash
+uv run python infra/teardown.py
+```
+
+Check the EC2 console afterwards to confirm nothing is left. To start again,
+repeat from step 1.
 
 ## Security and costs
 
-- EC2 instances incur charges while they exist and are running.
-- The ALB is billed hourly; LCU processing and public IPv4 addresses may add
-  charges.
-- The current security group exposes SSH (`22`) publicly; restrict it to your
-  IP address before leaving the infrastructure running for an extended period.
-- After the ALB is created, the application on port `8000` is reachable only
-  through the ALB. Use the ALB DNS name, not the instance IP addresses.
-- Final charges depend on runtime, traffic, region, and Learner Lab credits.
-  Check the AWS budget and run teardown after the session.
+- The instances and the ALB are billed while they exist: run the teardown when
+  you are done.
+- Ports `22` (SSH) and `8000` (app and custom LB) are open to the internet.

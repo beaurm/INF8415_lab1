@@ -22,7 +22,7 @@ def utc_label(timestamp):
     return timestamp.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
-def main():
+def save_cloudwatch_graphs():
     elbv2 = boto3.client("elbv2", region_name=AWS_REGION)
     cloudwatch = boto3.client("cloudwatch", region_name=AWS_REGION)
     alb = elbv2.describe_load_balancers(Names=[ALB_NAME])["LoadBalancers"][0]
@@ -62,4 +62,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    save_cloudwatch_graphs()
