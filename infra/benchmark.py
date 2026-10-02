@@ -10,7 +10,6 @@ import aiohttp
 
 NUM_REQUESTS = 1000
 
-
 async def single_request(session, url, request_id):
     start = time.perf_counter()
     try:

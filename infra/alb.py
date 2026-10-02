@@ -317,8 +317,6 @@ def restrict_instance_port(security_group_ids, alb_security_group_id):
             )
 
 
-
-
 def register_cluster_targets(instances, target_group_arns):
     for cluster, target_group_arn in target_group_arns.items():
         expected_ids = {item["instance_id"] for item in instances if item["cluster"] == cluster}

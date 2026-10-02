@@ -15,19 +15,19 @@ CLUSTER1 = {
     "name": "cluster1",
     "instance_type": "t3.micro",
     "count": 4,
-    "ami": "ami-0b2c9d1f3edcfd709",
+    "ami": "ami-0d27e0fb3bac4d724",
 }
 
 CLUSTER2 = {
     "name": "cluster2",
-    "instance_type": "t3.medium",
+    "instance_type": "m7g.large",
     "count": 4,
-    "ami": "ami-0b2c9d1f3edcfd709",
+    "ami": "ami-065b1b834d2a83a7a",
 }
 
 LOADBALANCER = {
     "name": "loadbalancer",
     "instance_type": "t3.micro",
     "count": 1,
-    "ami": "ami-0b2c9d1f3edcfd709",
+    "ami": "ami-0d27e0fb3bac4d724",
 }

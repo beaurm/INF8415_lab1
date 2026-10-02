@@ -47,8 +47,8 @@ async def get_health(instance):
 
 async def refresh_targets():
     instances = await asyncio.to_thread(get_project_instances)
-    results = await asyncio.gather(*(get_health(instance) for instance in instances),
-                                   return_exceptions=True)
+    results = await asyncio.gather(*(get_health(instance) for instance in instances), return_exceptions=True)
+    
     healthy = [result for result in results if isinstance(result, tuple)]
 
     for cluster in CLUSTERS:
