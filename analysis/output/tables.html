@@ -1,0 +1,559 @@
+<!doctype html>
+<html><head><meta charset='utf-8'><title>Benchmark tables</title><style>
+body { font-family: Arial, sans-serif; color: #000; background: #fff; margin: 2em; }
+h2 { font-size: 14pt; margin-top: 2em; }
+table { border-collapse: collapse; }
+th, td { border: 1px solid #000; padding: 4px 8px; text-align: right; }
+th { text-align: center; }
+p { font-size: 10pt; max-width: 50em; }
+</style></head><body>
+<h2>Table 1. Descriptive statistics per configuration</h2>
+<table class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>LB</th>
+      <th>Cluster</th>
+      <th>N</th>
+      <th>Success</th>
+      <th>Mean (ms)</th>
+      <th>Median (ms)</th>
+      <th>SD (ms)</th>
+      <th>IQR (ms)</th>
+      <th>Min (ms)</th>
+      <th>Max (ms)</th>
+      <th>p95 (ms)</th>
+      <th>p99 (ms)</th>
+      <th>Throughput (req/s)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>ALB</td>
+      <td>C1 (t3.micro)</td>
+      <td>5000</td>
+      <td>100.0%</td>
+      <td>315.8</td>
+      <td>312.2</td>
+      <td>93.2</td>
+      <td>132.3</td>
+      <td>141.9</td>
+      <td>567.3</td>
+      <td>499.6</td>
+      <td>547.6</td>
+      <td>2022 ± 253</td>
+    </tr>
+    <tr>
+      <td>ALB</td>
+      <td>C2 (m7g.large)</td>
+      <td>5000</td>
+      <td>100.0%</td>
+      <td>326.5</td>
+      <td>324.6</td>
+      <td>98.5</td>
+      <td>122.3</td>
+      <td>99.7</td>
+      <td>575.7</td>
+      <td>501.8</td>
+      <td>556.8</td>
+      <td>2013 ± 383</td>
+    </tr>
+    <tr>
+      <td>Custom LB</td>
+      <td>C1 (t3.micro)</td>
+      <td>5000</td>
+      <td>100.0%</td>
+      <td>1961.4</td>
+      <td>2029.0</td>
+      <td>1002.3</td>
+      <td>1816.3</td>
+      <td>160.7</td>
+      <td>3695.9</td>
+      <td>3478.6</td>
+      <td>3587.9</td>
+      <td>282 ± 21</td>
+    </tr>
+    <tr>
+      <td>Custom LB</td>
+      <td>C2 (m7g.large)</td>
+      <td>5000</td>
+      <td>100.0%</td>
+      <td>1908.1</td>
+      <td>1930.5</td>
+      <td>982.4</td>
+      <td>1726.8</td>
+      <td>177.4</td>
+      <td>3715.7</td>
+      <td>3390.0</td>
+      <td>3613.5</td>
+      <td>281 ± 15</td>
+    </tr>
+  </tbody>
+</table>
+<p>Latency statistics pool the successful requests of all runs. Throughput is the mean ± SD across runs.</p>
+<h2>Table 2. Repeatability across runs</h2>
+<table class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>LB</th>
+      <th>Cluster</th>
+      <th>Runs</th>
+      <th>Mean latency (ms)</th>
+      <th>p95 latency (ms)</th>
+      <th>Throughput (req/s)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>ALB</td>
+      <td>C1 (t3.micro)</td>
+      <td>5</td>
+      <td>315.8 ± 72.7</td>
+      <td>419.9 ± 74.7</td>
+      <td>2022 ± 253</td>
+    </tr>
+    <tr>
+      <td>ALB</td>
+      <td>C2 (m7g.large)</td>
+      <td>5</td>
+      <td>326.5 ± 77.9</td>
+      <td>439.2 ± 96.1</td>
+      <td>2013 ± 383</td>
+    </tr>
+    <tr>
+      <td>Custom LB</td>
+      <td>C1 (t3.micro)</td>
+      <td>5</td>
+      <td>1961.4 ± 99.2</td>
+      <td>3412.2 ± 203.5</td>
+      <td>282 ± 21</td>
+    </tr>
+    <tr>
+      <td>Custom LB</td>
+      <td>C2 (m7g.large)</td>
+      <td>5</td>
+      <td>1908.1 ± 95.9</td>
+      <td>3369.9 ± 187.0</td>
+      <td>281 ± 15</td>
+    </tr>
+  </tbody>
+</table>
+<p>Each metric is computed once per run, then reported as mean ± SD across runs.</p>
+<h2>Table 3. Small (C1) vs large (C2) cluster</h2>
+<table class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>LB</th>
+      <th>Metric</th>
+      <th>C1</th>
+      <th>C2</th>
+      <th>Change</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>ALB</td>
+      <td>Mean latency (ms)</td>
+      <td>315.8</td>
+      <td>326.5</td>
+      <td>-3.4% improvement</td>
+    </tr>
+    <tr>
+      <td>ALB</td>
+      <td>p95 latency (ms)</td>
+      <td>499.6</td>
+      <td>501.8</td>
+      <td>-0.4% improvement</td>
+    </tr>
+    <tr>
+      <td>ALB</td>
+      <td>Throughput (req/s)</td>
+      <td>2022</td>
+      <td>2013</td>
+      <td>-0.4% gain</td>
+    </tr>
+    <tr>
+      <td>Custom LB</td>
+      <td>Mean latency (ms)</td>
+      <td>1961.4</td>
+      <td>1908.1</td>
+      <td>+2.7% improvement</td>
+    </tr>
+    <tr>
+      <td>Custom LB</td>
+      <td>p95 latency (ms)</td>
+      <td>3478.6</td>
+      <td>3390.0</td>
+      <td>+2.5% improvement</td>
+    </tr>
+    <tr>
+      <td>Custom LB</td>
+      <td>Throughput (req/s)</td>
+      <td>282</td>
+      <td>281</td>
+      <td>-0.3% gain</td>
+    </tr>
+  </tbody>
+</table>
+<p>Latency improvement = (C1 − C2) / C1. Throughput gain = (C2 − C1) / C1.</p>
+<h2>Table 4. AWS ALB vs custom load balancer</h2>
+<table class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>Cluster</th>
+      <th>Metric</th>
+      <th>ALB</th>
+      <th>Custom LB</th>
+      <th>Difference</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>C1 (t3.micro)</td>
+      <td>Mean latency (ms)</td>
+      <td>315.8</td>
+      <td>1961.4</td>
+      <td>+521.0%</td>
+    </tr>
+    <tr>
+      <td>C1 (t3.micro)</td>
+      <td>Median latency (ms)</td>
+      <td>312.2</td>
+      <td>2029.0</td>
+      <td>+549.8%</td>
+    </tr>
+    <tr>
+      <td>C1 (t3.micro)</td>
+      <td>p95 latency (ms)</td>
+      <td>499.6</td>
+      <td>3478.6</td>
+      <td>+596.2%</td>
+    </tr>
+    <tr>
+      <td>C1 (t3.micro)</td>
+      <td>p99 latency (ms)</td>
+      <td>547.6</td>
+      <td>3587.9</td>
+      <td>+555.2%</td>
+    </tr>
+    <tr>
+      <td>C1 (t3.micro)</td>
+      <td>Throughput (req/s)</td>
+      <td>2021.5</td>
+      <td>281.6</td>
+      <td>-86.1%</td>
+    </tr>
+    <tr>
+      <td>C1 (t3.micro)</td>
+      <td>Error rate</td>
+      <td>0.0%</td>
+      <td>0.0%</td>
+      <td>+0.0 pp</td>
+    </tr>
+    <tr>
+      <td>C2 (m7g.large)</td>
+      <td>Mean latency (ms)</td>
+      <td>326.5</td>
+      <td>1908.1</td>
+      <td>+484.4%</td>
+    </tr>
+    <tr>
+      <td>C2 (m7g.large)</td>
+      <td>Median latency (ms)</td>
+      <td>324.6</td>
+      <td>1930.5</td>
+      <td>+494.7%</td>
+    </tr>
+    <tr>
+      <td>C2 (m7g.large)</td>
+      <td>p95 latency (ms)</td>
+      <td>501.8</td>
+      <td>3390.0</td>
+      <td>+575.6%</td>
+    </tr>
+    <tr>
+      <td>C2 (m7g.large)</td>
+      <td>p99 latency (ms)</td>
+      <td>556.8</td>
+      <td>3613.5</td>
+      <td>+549.0%</td>
+    </tr>
+    <tr>
+      <td>C2 (m7g.large)</td>
+      <td>Throughput (req/s)</td>
+      <td>2013.5</td>
+      <td>280.7</td>
+      <td>-86.1%</td>
+    </tr>
+    <tr>
+      <td>C2 (m7g.large)</td>
+      <td>Error rate</td>
+      <td>0.0%</td>
+      <td>0.0%</td>
+      <td>+0.0 pp</td>
+    </tr>
+  </tbody>
+</table>
+<p>Difference = (Custom − ALB) / ALB. A negative latency difference means the custom LB is faster.</p>
+<h2>Table 5. Request distribution per instance</h2>
+<table class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>LB</th>
+      <th>Cluster</th>
+      <th>Instance</th>
+      <th>Requests</th>
+      <th>Share</th>
+      <th>Mean latency (ms)</th>
+      <th>p95 latency (ms)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>ALB</td>
+      <td>C1 (t3.micro)</td>
+      <td>i-06b4dca514b2503ea</td>
+      <td>1250</td>
+      <td>25.0%</td>
+      <td>315.7</td>
+      <td>499.7</td>
+    </tr>
+    <tr>
+      <td>ALB</td>
+      <td>C1 (t3.micro)</td>
+      <td>i-06c2c30bc9286d85a</td>
+      <td>1250</td>
+      <td>25.0%</td>
+      <td>315.0</td>
+      <td>493.8</td>
+    </tr>
+    <tr>
+      <td>ALB</td>
+      <td>C1 (t3.micro)</td>
+      <td>i-075b3449abb6a16ad</td>
+      <td>1252</td>
+      <td>25.0%</td>
+      <td>316.4</td>
+      <td>502.7</td>
+    </tr>
+    <tr>
+      <td>ALB</td>
+      <td>C1 (t3.micro)</td>
+      <td>i-0d58cb5ea23bb4720</td>
+      <td>1248</td>
+      <td>25.0%</td>
+      <td>316.2</td>
+      <td>498.1</td>
+    </tr>
+    <tr>
+      <td>ALB</td>
+      <td>C2 (m7g.large)</td>
+      <td>i-05bbb0d782c5e57a8</td>
+      <td>1249</td>
+      <td>25.0%</td>
+      <td>327.7</td>
+      <td>504.1</td>
+    </tr>
+    <tr>
+      <td>ALB</td>
+      <td>C2 (m7g.large)</td>
+      <td>i-0c3489a23fdaf4a0c</td>
+      <td>1250</td>
+      <td>25.0%</td>
+      <td>326.1</td>
+      <td>501.6</td>
+    </tr>
+    <tr>
+      <td>ALB</td>
+      <td>C2 (m7g.large)</td>
+      <td>i-0d6929e0ab3727a1d</td>
+      <td>1250</td>
+      <td>25.0%</td>
+      <td>325.8</td>
+      <td>502.0</td>
+    </tr>
+    <tr>
+      <td>ALB</td>
+      <td>C2 (m7g.large)</td>
+      <td>i-0ede6e1051cba98ec</td>
+      <td>1251</td>
+      <td>25.0%</td>
+      <td>326.5</td>
+      <td>501.3</td>
+    </tr>
+    <tr>
+      <td>Custom LB</td>
+      <td>C1 (t3.micro)</td>
+      <td>i-06b4dca514b2503ea</td>
+      <td>396</td>
+      <td>7.9%</td>
+      <td>2734.9</td>
+      <td>3066.0</td>
+    </tr>
+    <tr>
+      <td>Custom LB</td>
+      <td>C1 (t3.micro)</td>
+      <td>i-06c2c30bc9286d85a</td>
+      <td>1889</td>
+      <td>37.8%</td>
+      <td>1895.4</td>
+      <td>3457.0</td>
+    </tr>
+    <tr>
+      <td>Custom LB</td>
+      <td>C1 (t3.micro)</td>
+      <td>i-075b3449abb6a16ad</td>
+      <td>683</td>
+      <td>13.7%</td>
+      <td>1563.5</td>
+      <td>2854.1</td>
+    </tr>
+    <tr>
+      <td>Custom LB</td>
+      <td>C1 (t3.micro)</td>
+      <td>i-0d58cb5ea23bb4720</td>
+      <td>2032</td>
+      <td>40.6%</td>
+      <td>2005.9</td>
+      <td>3523.3</td>
+    </tr>
+    <tr>
+      <td>Custom LB</td>
+      <td>C2 (m7g.large)</td>
+      <td>i-05bbb0d782c5e57a8</td>
+      <td>793</td>
+      <td>15.9%</td>
+      <td>1471.0</td>
+      <td>2779.6</td>
+    </tr>
+    <tr>
+      <td>Custom LB</td>
+      <td>C2 (m7g.large)</td>
+      <td>i-0c3489a23fdaf4a0c</td>
+      <td>2125</td>
+      <td>42.5%</td>
+      <td>2024.5</td>
+      <td>3421.1</td>
+    </tr>
+    <tr>
+      <td>Custom LB</td>
+      <td>C2 (m7g.large)</td>
+      <td>i-0d6929e0ab3727a1d</td>
+      <td>0</td>
+      <td>0.0%</td>
+      <td>–</td>
+      <td>–</td>
+    </tr>
+    <tr>
+      <td>Custom LB</td>
+      <td>C2 (m7g.large)</td>
+      <td>i-0ede6e1051cba98ec</td>
+      <td>2082</td>
+      <td>41.6%</td>
+      <td>1955.9</td>
+      <td>3437.7</td>
+    </tr>
+  </tbody>
+</table>
+<p>All runs pooled, successful requests only.</p>
+<h2>Table 6. Load distribution fairness</h2>
+<table class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>LB</th>
+      <th>Cluster</th>
+      <th>Instances</th>
+      <th>Instances used</th>
+      <th>CV of request counts</th>
+      <th>Normalized entropy</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>ALB</td>
+      <td>C1 (t3.micro)</td>
+      <td>4</td>
+      <td>4</td>
+      <td>0.00</td>
+      <td>1.00</td>
+    </tr>
+    <tr>
+      <td>ALB</td>
+      <td>C2 (m7g.large)</td>
+      <td>4</td>
+      <td>4</td>
+      <td>0.00</td>
+      <td>1.00</td>
+    </tr>
+    <tr>
+      <td>Custom LB</td>
+      <td>C1 (t3.micro)</td>
+      <td>4</td>
+      <td>4</td>
+      <td>0.58</td>
+      <td>0.87</td>
+    </tr>
+    <tr>
+      <td>Custom LB</td>
+      <td>C2 (m7g.large)</td>
+      <td>4</td>
+      <td>3</td>
+      <td>0.72</td>
+      <td>0.74</td>
+    </tr>
+  </tbody>
+</table>
+<p>CV = SD / mean of the request counts per instance (0 = perfectly even). Normalized entropy = H / ln(N): 1 = perfectly even, 0 = all traffic on one instance.</p>
+<h2>Table 7. Statistical tests on request latency</h2>
+<table class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>Comparison (A vs B)</th>
+      <th>Median A (ms)</th>
+      <th>Median B (ms)</th>
+      <th>Mann–Whitney U</th>
+      <th>p-value</th>
+      <th>Cliff's δ</th>
+      <th>Effect size</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>ALB vs Custom LB, C1 (t3.micro)</td>
+      <td>312.2</td>
+      <td>2029.0</td>
+      <td>677171</td>
+      <td>0.00e+00</td>
+      <td>-0.95</td>
+      <td>large</td>
+    </tr>
+    <tr>
+      <td>ALB vs Custom LB, C2 (m7g.large)</td>
+      <td>324.6</td>
+      <td>1930.5</td>
+      <td>960264</td>
+      <td>0.00e+00</td>
+      <td>-0.92</td>
+      <td>large</td>
+    </tr>
+    <tr>
+      <td>C1 vs C2, ALB</td>
+      <td>312.2</td>
+      <td>324.6</td>
+      <td>11527707</td>
+      <td>1.63e-11</td>
+      <td>-0.08</td>
+      <td>negligible</td>
+    </tr>
+    <tr>
+      <td>C1 vs C2, Custom LB</td>
+      <td>2029.0</td>
+      <td>1930.5</td>
+      <td>12895310</td>
+      <td>6.17e-03</td>
+      <td>+0.03</td>
+      <td>negligible</td>
+    </tr>
+  </tbody>
+</table>
+<p>Two-sided Mann–Whitney U test on the pooled request latencies. Cliff's δ = P(A > B) − P(A < B): positive means A is slower. Requests of the same run are not fully independent, so p-values are optimistic; the effect size is the more meaningful number.</p>
+</body></html>

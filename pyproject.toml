@@ -8,5 +8,8 @@ dependencies = [
     "boto3>=1.43.100",
     "fastapi>=0.141.1",
     "httpx>=0.28.1",
+    "matplotlib>=3.11.2",
+    "pandas>=3.0.6",
+    "scipy>=1.18.1",
     "uvicorn[standard]>=0.53.0",
 ]
