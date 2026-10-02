@@ -1,8 +1,4 @@
-"""Save recent ALB health and request graphs, independently of the chaos check.
-
-Run from the repository root: uv run python infra/cloudwatch_graphs.py
-Rerun this script if CloudWatch has not published the latest points yet.
-"""
+"""Save recent ALB health and request graphs"""
 
 from datetime import datetime, timedelta, timezone
 import json
