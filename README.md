@@ -62,7 +62,7 @@ This runs, in order:
 2. **Wait** until the instances pass their AWS status checks (SSH is ready).
 3. **Deploy** the FastAPI app on the 8 cluster instances and the custom load
    balancer on its own instance.
-4. **Create the ALB**, wait until all targets are healthy and check both routes.
+4. **Create the ALB** and wait until all targets are healthy.
 5. **Benchmark** both clusters through the ALB, then through the custom LB.
 
 A full run takes about 10 minutes. `tee` shows the output and also saves it in
@@ -73,7 +73,7 @@ At the end of the deploy and ALB steps, the script prints the two addresses to
 test with:
 
 ```text
-Load Balancer public IP: <custom-lb-ip>
+Custom load balancer: http://<custom-lb-ip>:8000
 ALB DNS: <alb-dns-name>
 ```
 
@@ -89,13 +89,11 @@ uv run python infra/benchmark.py <alb-dns-name>
 uv run python infra/benchmark.py <custom-lb-ip>:8000
 ```
 
-- `provision.py` reuses project instances that are already `pending` or
-  `running`; it does not restart stopped ones. It saves the SSH key as
-  `assignment1-team-296-key.pem` at the repository root; keep it private.
-- `deploy.py` prints `Deployment completed successfully on all instances.` only
-  if every instance returns the right instance ID, cluster and seed (`team_seed`
-  in the JSON body and `X-Team-Seed` header).
-- `alb.py` can be rerun safely: it reuses resources that already exist.
+- `provision.py` saves the SSH key as `assignment1-team-296-key.pem` at the
+  repository root; keep it private.
+- The scripts create resources without checking for existing ones: run the
+  teardown before provisioning again. Teardown finds everything by its tag or
+  name, including what a failed run left behind.
 
 ## 4. Test the load balancers
 
@@ -161,4 +159,5 @@ repeat from step 1.
 
 - The instances and the ALB are billed while they exist: run the teardown when
   you are done.
-- Ports `22` (SSH) and `8000` (app and custom LB) are open to the internet.
+- One security group is shared by the instances and the ALB. Ports `22` (SSH),
+  `80` (ALB) and `8000` (app and custom LB) are open to the internet.

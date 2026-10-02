@@ -1,9 +1,12 @@
 """Shared config for the boto3 provisioning scripts."""
 
+from pathlib import Path
+
 TEAM_SEED = 296
 PROJECT_TAG = f"assignment1-team-{TEAM_SEED}"
 
 KEY_NAME = f"{PROJECT_TAG}-key"
+KEY_PATH = Path(__file__).resolve().parents[1] / f"{KEY_NAME}.pem"
 SECURITY_GROUP_NAME = f"{PROJECT_TAG}-sg"
 
 APP_PORT = 8000
